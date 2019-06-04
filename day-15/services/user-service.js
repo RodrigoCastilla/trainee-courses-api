@@ -1,27 +1,34 @@
-const usernameList = [];
+const courseService = require("../services/course-service");
 
-const getAllUsernames = () => {
-  return usernameList;
+const userList = [];
+
+const getAllUsers = () => {
+  return userList;
 };
 
-const addUsername = username => {
-  usernameList.push(username);
+const addUser = user => {
+  userList.push(user);
 };
 
-const updateUsername = (oldUsername, newUsername) => {
+const updateUser = (oldUser, newUser) => {
   // predicate: true | false
-  const index = usernameList.findIndex(un => oldUsername === un);
-  usernameList[index] = newUsername;
+  const index = userList.findIndex(un => oldUser === un);
+  userList[index] = newUser;
 };
 
-const deleteUsername = username => {
-  const index = usernameList.findIndex(un => oldUsername === un);
-  usernameList.splice(index, 1);
+const deleteUser = user => {
+  const index = userList.findIndex(un => user === un);
+  userList.splice(index, 1);
+};
+
+const registerUserInCourse = () => {
+  
 };
 
 module.exports = {
-  getAllUsernames,
-  addUsername,
-  updateUsername,
-  deleteUsername
+  getAllUsers,
+  addUser,
+  updateUser,
+  deleteUser,
+  registerUserInCourse
 };

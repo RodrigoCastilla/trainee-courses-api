@@ -1,66 +1,99 @@
 const userService = require("../services/user-service");
 
-const getUsernameList = (_req, res) => {
-  const usernameList = userService.getAllUsernames();
+const getUserList = (_req, res) => {
+  const userList = userService.getAllUsers();
   res.render("users/users", {
-    usernameList
+    userList
   });
 };
 
-const addUserName = (req, res) => {
-  const { username } = req.body;
+const addUser = (req, res) => {
+  const { user } = req.body;
 
-  if (!username.length) {
+  if (!user.length) {
     return res.render("error", {
-      message: "Username cannot be empty"
+      message: "User cannot be empty"
     });
   }
 
-  userService.addUsername(username);
+  userService.addUser(user);
   res.redirect("/users");
 };
 
-// GET /:username/edit
-const updateUsernameForm = (req, res) => {
-  const { username } = req.params;
+// GET /:user/edit
+const updateUserForm = (req, res) => {
+  const { user } = req.params;
   res.render("users/edit-form", {
-    username
+    user
   });
 };
 
-// POST /users/:username
-const updateUsername = (req, res) => {
-  const oldUsername = req.params.username;
-  const { username } = req.body;
-  userService.updateUsername(oldUsername, username);
-  res.redirect(`/users/${username}/`);
+// POST /users/:user
+const updateUser = (req, res) => {
+  const oldUser = req.params.user;
+  const { user } = req.body;
+  userService.updateUser(oldUser, user);
+  res.redirect(`/users/${user}/`);
 };
 
-// GET /users/:username
-const deleteUsernameConfirmation = (req, res) => {
-  const { username } = req.params;
-  res.render("users/confirm-delete", { username });
+// GET /users/:user
+const deleteUserConfirmation = (req, res) => {
+  const { user } = req.params;
+  res.render("users/confirm-delete", { user });
 };
 
-// DELETE /users/:username
-const deleteUsername = (req, res) => {
-  const { username } = req.params;
-  userService.deleteUsername(username);
+// DELETE /users/:user
+const deleteUser = (req, res) => {
+  const { user } = req.params;
+  userService.deleteUser(user);
   res.redirect("/users");
 };
 
-// GET /users/:username
-const getSingleUsername = (req, res) => {
-  const { username } = req.params;
-  res.render("users/single-username", { username });
+// GET /users/:user
+const getSingleUser = (req, res) => {
+  const { user } = req.params;
+  res.render("users/single-user", { user });
 };
 
+// POST /api/users/:name/courses
+const enrollInCourse = (req, res) => {
+  const {name} = req.params;
+  const users = userService.getAllUsers();
+  const user = users.find(userElem => userElem.name === name);
+  
+  if (!user) {
+      return res.status(404).send('The user with the given NAME was not found');
+  }
+
+  const course = courses.find(courseElem => courseElem.courseName === req.body.courseName);
+  
+  if(!course){
+      return res.status(404).send('The course with the given NAME was not found');
+  }
+  
+  if(user.enrolledCourses.length >= 1){
+      const userAlreadyEnrolled = user.enrolledCourses.find(courseElem => courseElem.courseName === course.courseName);
+      if(userAlreadyEnrolled){
+          console.log('Already Enrolled');
+          return res.status(404).send('Already Enrolled');
+      }
+  }
+  courseService.registerUserInCourse();
+  console.log('inscrito');
+  user.enrolledCourses.push(course);
+  // Return the updated user
+  res.send(user);
+};
+
+
+
 module.exports = {
-  getUsernameList,
-  addUserName,
-  updateUsername,
-  updateUsernameForm,
-  getSingleUsername,
-  deleteUsernameConfirmation,
-  deleteUsername
+  getUserList,
+  addUser,
+  updateUser,
+  updateUserForm,
+  getSingleUser,
+  deleteUserConfirmation,
+  deleteUser,
+  enrollInCourse
 };
