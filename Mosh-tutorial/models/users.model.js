@@ -1,12 +1,28 @@
 const mongoose = require("mongoose");
 
-const courseSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   //   id: {
   //     type: String
   //   },
   name: {
     type: String,
     required: "This field is required."
+  },
+  email: {
+    type: String,
+    required: "This field is required."
+  },
+  password: {
+    type: String,
+    required: "This field is required."
+  },
+  role: {
+    type: String,
+    required: "This field is required."
+  },
+  enrolledCourses: {
+    type: Array
+    // required: "This field is required."
   }
 });
 
@@ -16,4 +32,4 @@ const courseSchema = new mongoose.Schema({
 //   return emailRegex.test(val);
 // }, "Invalid e-mail.");
 
-mongoose.model("Course", courseSchema);
+mongoose.model("User", userSchema);

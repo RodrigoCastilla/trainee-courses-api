@@ -1,9 +1,16 @@
 const courseService = require("../services/course-service");
 
-const userList = [];
+const userList = [
+  {id:1, name: "Rodrigo", email: "armc3po@gmail.com", password: "Admin123", role: "Admin", enrolledCourses: []},
+  {id:2, name: "Groot", email: "iamgrood@gmail.com", password: "User123", role: "User", enrolledCourses: []}
+];
 
 const getAllUsers = () => {
   return userList;
+};
+
+const getASpecificUser = (name) => {
+  return userList.find(userElem => userElem.name === name);;
 };
 
 const addUser = user => {
@@ -21,14 +28,25 @@ const deleteUser = user => {
   userList.splice(index, 1);
 };
 
-const registerUserInCourse = () => {
-  
+const registerCourseInUser = (userName, course) => {
+  const userIndex = userList.findIndex(userElem => userElem.name === userName);
+  userList[userIndex].enrolledCourses.push(course);
+};
+
+const removeCourseInUser = (user, courseIndex) =>{
+  const courseIndex = user.enrolledCourses.findIndex(
+    courseElem => courseElem.courseName === courseName
+  );
+  if(courseIndex !== -1)
+      user.enrolledCourses.splice(courseIndex, 1);
 };
 
 module.exports = {
   getAllUsers,
+  getASpecificUser,
   addUser,
   updateUser,
   deleteUser,
-  registerUserInCourse
+  registerCourseInUser,
+  removeCourseInUser
 };

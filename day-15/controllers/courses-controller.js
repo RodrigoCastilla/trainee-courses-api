@@ -8,18 +8,18 @@ const getCourseList = (_req, res) => {
 };
 
 const addCourse = (req, res) => {
-  const { error } = validateCourse(req.body); 
-    if(error){
-        res.status(400).send(result.error.details[0].message);
-        return;
-    }
-    
-    const course = {
-        id: courseService.getAllCourses.length+1,
-        name: req.body.name
-    }
-    courseService.addCourse(course);
-    res.redirect("/courses");
+  const { error } = validateCourse(req.body);
+  if (error) {
+    res.status(400).send(result.error.details[0].message);
+    return;
+  }
+
+  const course = {
+    id: courseService.getAllCourses.length + 1,
+    name: req.body.name
+  };
+  courseService.addCourse(course);
+  res.redirect("/courses");
 };
 
 // GET /:course/edit
@@ -57,13 +57,14 @@ const getSingleCourse = (req, res) => {
   res.render("courses/single-course", { course });
 };
 
-function validateCourse(course){
+function validateCourse(course) {
   const schema = {
-      name: Joi.string().min(3).required()
-  }
+    name: Joi.string()
+      .min(3)
+      .required()
+  };
   return Joi.validate(course, schema);
 }
-
 
 module.exports = {
   getCourseList,

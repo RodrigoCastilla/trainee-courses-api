@@ -57,35 +57,57 @@ const getSingleUser = (req, res) => {
 
 // POST /api/users/:name/courses
 const enrollInCourse = (req, res) => {
-  const {name} = req.params;
-  const users = userService.getAllUsers();
-  const user = users.find(userElem => userElem.name === name);
-  
+  const { name } = req.params;
+
+  const user = getASpecificUser(name);
+
   if (!user) {
-      return res.status(404).send('The user with the given NAME was not found');
+    return res.status(404).send("The user with the given NAME was not found");
   }
 
-  const course = courses.find(courseElem => courseElem.courseName === req.body.courseName);
-  
-  if(!course){
-      return res.status(404).send('The course with the given NAME was not found');
+  const course = courses.find(
+    courseElem => courseElem.courseName === req.body.courseName
+  );
+
+  if (!course) {
+    return res.status(404).send("The course with the given NAME was not found");
   }
-  
-  if(user.enrolledCourses.length >= 1){
-      const userAlreadyEnrolled = user.enrolledCourses.find(courseElem => courseElem.courseName === course.courseName);
-      if(userAlreadyEnrolled){
-          console.log('Already Enrolled');
-          return res.status(404).send('Already Enrolled');
-      }
+
+  if (user.enrolledCourses.length >= 1) {
+    const userAlreadyEnrolled = user.enrolledCourses.find(
+      courseElem => courseElem.courseName === course.courseName
+    );
+    if (userAlreadyEnrolled) {
+      console.log("Already Enrolled");
+      return res.status(404).send("Already Enrolled");
+    }
   }
-  courseService.registerUserInCourse();
-  console.log('inscrito');
-  user.enrolledCourses.push(course);
-  // Return the updated user
-  res.send(user);
+  courseService.registerCourseInUser(user.name, course);
+  res.redirect(`/users/${user.name}`);
 };
 
+const removeCourseFromUser = (req, res) => {
+  const { name } = req.params;
+  const user = getASpecificUser(name);
 
+  if (!user) {
+    return res.status(404).send("The user with the given NAME was not found");
+  }
+
+  const { courseName } = req.params;
+
+  if (!courseName) {
+    return res.status(404).send("The course with the given NAME was not found");
+  }
+
+  if (user.enrolledCourses.length === 0) {
+    return res.status(404).send("Course Not Found");
+  }
+
+  userService.removeCourseInUser();
+
+  res.send(user.enrolledCourses);
+};
 
 module.exports = {
   getUserList,
@@ -95,5 +117,6 @@ module.exports = {
   getSingleUser,
   deleteUserConfirmation,
   deleteUser,
-  enrollInCourse
+  enrollInCourse,
+  removeCourseFromUser
 };

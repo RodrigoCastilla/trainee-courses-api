@@ -1,7 +1,7 @@
 const courseList = [
-  {id: 1, courseName: 'course1'},
-  {id: 2, courseName: 'course2'},
-  {id: 3, courseName: 'course3'}
+  { id: 1, courseName: "course1" },
+  { id: 2, courseName: "course2" },
+  { id: 3, courseName: "course3" }
 ];
 
 const getAllCourses = () => {
@@ -22,7 +22,6 @@ const deleteCourse = course => {
   const index = courseList.findIndex(un => course === un);
   courseList.splice(index, 1);
 };
-
 
 module.exports = {
   getAllCourses,
