@@ -16,8 +16,8 @@
             <td>{{this.password}}</td>
             <td>{{this.role}}</td>
             <td>
-                <a href="/employee/{{this._id}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a>
-                <a href="/employee/delete/{{this._id}}"
+                <a href="/api/users/{{this._id}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a>
+                <a href="/api/users/delete/{{this._id}}"
                     onclick="return confirm('Are you sure to delete this record ?');"><i class="fa fa-trash fa-lg"
                         aria-hidden="true"></i></a>
             </td>

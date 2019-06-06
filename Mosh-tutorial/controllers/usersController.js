@@ -2,13 +2,22 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const User = mongoose.model("User");
+const Course = mongoose.model("Course");
 
 router.get("/", (req, res) => {
   res.json("sample text");
 });
 
+router.post("/", (req, res) => {
+  updateRecord(req, res);
+});
+
 router.post("/register", (req, res) => {
   insertUser(req, res);
+});
+
+router.put("/:userId/courses", (req, res) => {
+  insertCourseInUser(req, res);
 });
 
 router.get("/list", (req, res) => {
@@ -25,26 +34,35 @@ router.get("/list", (req, res) => {
 });
 
 router.get("/:id", (req, res) => {
-  User.findById(req.params.id, (err, doc) => {
+  User.findById(req.params._id, (err, doc) => {
     if (!err) {
-      res.render("user/addOrEdit", {
+      res.render("users/addOrEdit", {
         viewTitle: "Update User",
-        employee: doc
+        user: doc
       });
     }
   });
 });
 
-router.delete("/delete/:id", (req, res) => {
+router.get("/delete/:id", (req, res) => {
   User.findByIdAndRemove(req.params.id, (err, doc) => {
     if (!err) {
-      res.redirect("/user/list");
+      console.log("Eliminado");
+      res.redirect("/api/users/list");
     } else {
       console.log("Error in user delete :" + err);
     }
   });
 });
 
+/*
+{
+  "name" : "Rodrigo",
+	"email": "rcastillalp@gmail.com",
+	"password" : "contraseña",
+	"role" : "Admin"
+}
+*/
 function insertUser(req, res) {
   const user = new User();
   const { name } = req.body;
@@ -66,6 +84,51 @@ function insertUser(req, res) {
   });
 }
 
+function insertCourseInUser(req, res) {
+  Course.find({ name: req.body.courseName }, (err, data) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    console.log(data);
+    //Insert course into enrooledCourses Array
+    let datos = data;
+    User.findOneAndUpdate(
+      { _id: req.params.userId },
+      {
+        $push: {
+          enrolledCourses: data
+        }
+      },
+      { new: true },
+      (err, doc) => {
+        if (!err) {
+          //   User.find({ _id: req.params.id }, (err, data) => {
+          //     Course.findOneAndUpdate(
+          //       { _id: req.body.courseName },
+          //       {
+          //         $push: {
+          //           enrolledCourses: data
+          //         }
+          //       },
+          //       { new: true }
+          //     );
+          //   });
+          res.redirect("/api/users/list");
+        } else {
+          if (err.name == "ValidationError") {
+            handleValidationError(err, req.body);
+            res.render("users/addOrEdit", {
+              viewTitle: "Update User",
+              user: req.body
+            });
+          } else console.log("Error during record update : " + err);
+        }
+      }
+    );
+  });
+}
+
 function updateRecord(req, res) {
   User.findOneAndUpdate(
     { _id: req.body._id },
@@ -79,7 +142,7 @@ function updateRecord(req, res) {
           handleValidationError(err, req.body);
           res.render("users/addOrEdit", {
             viewTitle: "Update User",
-            employee: req.body
+            user: req.body
           });
         } else console.log("Error during record update : " + err);
       }

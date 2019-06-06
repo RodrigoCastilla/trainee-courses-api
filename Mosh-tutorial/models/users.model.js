@@ -20,10 +20,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: "This field is required."
   },
-  enrolledCourses: {
-    type: Array
-    // required: "This field is required."
-  }
+  enrolledCourses: [
+    {
+      _id: mongoose.Schema.Types.ObjectId,
+      name: String
+    }
+  ]
 });
 
 // Custom validation for email

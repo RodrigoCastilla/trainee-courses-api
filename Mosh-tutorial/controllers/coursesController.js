@@ -14,8 +14,9 @@ router.get("/test/:name", (req, res) => {
 function insertCourse(req, res) {
   const course = new Course();
   course.name = req.params.name;
+  // course.enrolledCourses = [];
   course.save((err, doc) => {
-    if (!err) res.redirect("/course/list");
+    if (!err) res.redirect("/api/course/list");
     else {
       console.log("Error during record insertion: " + err);
     }
