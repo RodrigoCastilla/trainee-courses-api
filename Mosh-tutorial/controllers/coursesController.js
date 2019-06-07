@@ -3,8 +3,18 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const Course = mongoose.model("Course");
 
+//
 router.get("/", (req, res) => {
-  res.json("sample text");
+  Course.find((err, docs) => {
+    if (!err) {
+      // res.render("courses/list", {
+      //   list: docs
+      // });
+      res.json(docs);
+    } else {
+      console.log("Error retrieving user list: " + err);
+    }
+  });
 });
 
 router.get("/test/:name", (req, res) => {
