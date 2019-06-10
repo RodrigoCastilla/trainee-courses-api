@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const Course = mongoose.model("Course");
+const userService = require("../services/user-service");
 
 //
 router.get("/", (req, res) => {
@@ -24,8 +25,10 @@ router.get("/test/:name", (req, res) => {
 function insertCourse(req, res) {
   const course = new Course();
   course.name = req.params.name;
-  // course.enrolledCourses = [];
+  course.enrolledUsers = [];
+  console.log(course);
   course.save((err, doc) => {
+    console.log("Course Registered");
     if (!err) res.redirect("/api/course/list");
     else {
       console.log("Error during record insertion: " + err);

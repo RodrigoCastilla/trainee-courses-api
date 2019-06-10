@@ -5,8 +5,8 @@ const path = require("path");
 const exphbs = require("express-handlebars");
 const bodyparser = require("body-parser");
 
-const courseController = require("./controllers/coursesController");
-const usersController = require("./controllers/usersController");
+const courseController = require("./controllers/courses-controller");
+const usersController = require("./controllers/users-controller");
 
 var app = express();
 app.use(

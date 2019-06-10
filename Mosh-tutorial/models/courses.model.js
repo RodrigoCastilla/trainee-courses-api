@@ -7,22 +7,16 @@ const courseSchema = new mongoose.Schema({
   name: {
     type: String,
     required: "This field is required."
-  }
-  // enrolledUsers: [
-  //   {
-  //     _id: mongoose.Schema.Types.ObjectId,
-  //     name: String,
-  //     email: String,
-  //     password: String,
-  //     role: String,
-  //     enrolledCourses: [
-  //       {
-  //         _id: mongoose.Schema.Types.ObjectId,
-  //         name: String
-  //       }
-  //     ]
-  //   }
-  // ]
+  },
+  enrolledUsers: [
+    {
+      _id: mongoose.Schema.Types.ObjectId,
+      name: String,
+      email: String,
+      password: String,
+      role: String
+    }
+  ]
 });
 
 // Custom validation for email

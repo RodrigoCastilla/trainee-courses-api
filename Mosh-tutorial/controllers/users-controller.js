@@ -5,10 +5,11 @@ const User = mongoose.model("User");
 const Course = mongoose.model("Course");
 const localStorage = require("local-storage");
 const jwt = require("jsonwebtoken");
+const userService = require("../services/user-service");
 
 //Mainpage
-router.get("/", verifyToken, (req, res) => {
-  jwt.verify(req.token, "secretKey", (err, authData) => {
+router.get("/", verifyToken, verifyUser, (req, res) => {
+  const a = jwt.verify(req.token, "secretKey", (err, authData) => {
     if (err) {
       console.log("forbidden from login");
       res.sendStatus(403);
@@ -29,27 +30,35 @@ router.get("/", verifyToken, (req, res) => {
 });
 
 //UpdateRecord
-router.post("/", verifyToken, (req, res) => {
+router.put("/:id", verifyToken, verifyAdmin, (req, res) => {
   updateRecord(req, res);
 });
 
 //RegisterNewUser
-router.post("/register", (req, res) => {
+router.post("/register" /*, verifyToken, verifyAdmin*/, (req, res) => {
   insertUser(req, res);
 });
 
 //Enroll User In a Course
-router.put("/:userId/courses", (req, res) => {
-  insertCourseInUser(req, res);
-});
+router.put(
+  "/:userId/courses",
+  /*verifyToken, verifyUser, */ (req, res) => {
+    insertCourseInUser(req, res);
+  }
+);
 
 //Remove a User In a Course
-router.delete("/:userId/courses/:courseName", (req, res) => {
-  removeCourseInUser(req, res);
-});
+router.delete(
+  "/:userId/courses/:courseName",
+  // verifyToken,
+  // verifyUser,
+  (req, res) => {
+    removeCourseInUser(req, res);
+  }
+);
 
 //Get The list of Users
-router.get("/list", (req, res) => {
+router.get("/list", verifyToken, verifyUser, (req, res) => {
   //   res.json("from list");
 
   res.redirect("/api/users");
@@ -82,15 +91,15 @@ router.post("/login", (req, res) => {
       console.log(err);
       return;
     }
-    const { name } = data.name;
-    const { role } = data.role;
-    console.log(data);
+    // console.log(data);
+    const name = data[0].name;
+    const role = data[0].role;
     const user = {
       name: name,
       email: req.body.email,
       role: role
     };
-    console.log(user);
+    // console.log(user);
     jwt.sign(
       { user: user },
       "secretKey" /*, {expiresIn: '30s'} */,
@@ -106,9 +115,10 @@ router.post("/login", (req, res) => {
 });
 
 //
-router.get("/:id", (req, res) => {
-  User.findById(req.params._id, (err, doc) => {
+router.get("/:id", verifyToken, verifyUser, (req, res) => {
+  User.findById(req.params.id, (err, doc) => {
     if (!err) {
+      console.log(doc);
       res.render("users/addOrEdit", {
         viewTitle: "Update User",
         user: doc
@@ -118,7 +128,7 @@ router.get("/:id", (req, res) => {
 });
 
 //Delete User by ID
-router.delete("/:id", (req, res) => {
+router.delete("/:id", verifyToken, verifyAdmin, (req, res) => {
   User.findByIdAndRemove(req.params.id, (err, doc) => {
     if (!err) {
       console.log("Eliminado");
@@ -141,28 +151,18 @@ router.delete("/:id", (req, res) => {
 */
 //Insert New User Function
 function insertUser(req, res) {
-  const user = new User();
-  const { name } = req.body;
-  const { email } = req.body;
-  const { password } = req.body;
-  const { role } = req.body;
-  user.name = name;
-  user.email = email;
-  user.password = password;
-  user.role = role;
-  user.enrolledCourses = [];
-
-  localStorage.set("usuario", JSON.stringify(user));
-  // console.log(JSON.parse(localStorage.get("userToken")));
-  user.save((err, doc) => {
-    if (!err) {
-      // localStorage.setItem("usuario", JSON.stringify(user));
-      res.redirect("/api/users/list");
-    } else {
-      if (err.name == ValidationError) handleValidationError(err, req.body);
-      else console.log("Error during record insertion: " + err);
-    }
-  });
+  const newUser = {
+    name: req.body.name,
+    email: req.body.email,
+    password: req.body.password,
+    role: req.body.role
+  };
+  const response = userService.addUser(newUser);
+  if (response) {
+    res.redirect("/api/users");
+  } else {
+    res.redirect("/api/users");
+  }
 }
 
 //Register a course in user - Function
@@ -183,18 +183,21 @@ function insertCourseInUser(req, res) {
       },
       { new: true },
       (err, doc) => {
+        // console.log(data);
         if (!err) {
-          //   User.find({ _id: req.params.id }, (err, data) => {
-          //     Course.findOneAndUpdate(
-          //       { _id: req.body.courseName },
-          //       {
-          //         $push: {
-          //           enrolledCourses: data
-          //         }
-          //       },
-          //       { new: true }
-          //     );
-          //   });
+          // Course.findOneAndUpdate(
+          //   { id: data.id },
+          //   {
+          //     $addToSet: {
+          //       enrolledUsers: doc
+          //     }
+          //   },
+          //   { new: true },
+          //   (err, courseDoc) => {
+          //     if (!err) console.log(doc);
+          //     else console.log("Error during record update : " + err);
+          //   }
+          // );
           res.redirect("/api/users/list");
         } else {
           if (err.name == "ValidationError") {
@@ -213,7 +216,7 @@ function insertCourseInUser(req, res) {
 //Remove a course in user - Function
 function removeCourseInUser(req, res) {
   User.findOneAndUpdate(
-    { _id: req.params.userId },
+    { id: req.params.userId },
     {
       $pull: { enrolledCourses: { name: req.params.courseName } }
     },
@@ -236,24 +239,19 @@ function removeCourseInUser(req, res) {
 
 //Update User Data
 function updateRecord(req, res) {
-  User.findOneAndUpdate(
-    { _id: req.body._id },
-    req.body,
-    { new: true },
-    (err, doc) => {
-      if (!err) {
-        res.redirect("users/list");
-      } else {
-        if (err.name == "ValidationError") {
-          handleValidationError(err, req.body);
-          res.render("users/addOrEdit", {
-            viewTitle: "Update User",
-            user: req.body
-          });
-        } else console.log("Error during record update : " + err);
-      }
-    }
-  );
+  const userId = req.params.id;
+  const userData = req.body;
+  const response = userService.updateUser(userId, userData);
+  if (response) {
+    console.log("User Updated");
+    res.redirect("users/list");
+  } else {
+    console.log("Error during record update : " + err);
+    res.render("users/addOrEdit", {
+      viewTitle: "Update User",
+      user: req.body
+    });
+  }
 }
 
 //Format of Token
@@ -277,6 +275,32 @@ function verifyToken(req, res, next) {
     console.log("Forbidden from VerifyToken");
     res.sendStatus(403);
   }
+}
+
+function verifyUser(req, res, next) {
+  jwt.verify(req.token, "secretKey", (err, authData) => {
+    if (err) {
+      console.log("Forbidden from User Verify");
+      res.sendStatus(403);
+    } else {
+      if (authData.user.role === "User" || authData.user.role === "Admin") {
+        next();
+      }
+    }
+  });
+}
+
+function verifyAdmin(req, res, next) {
+  jwt.verify(req.token, "secretKey", (err, authData) => {
+    if (err) {
+      console.log("Forbidden from User Verify");
+      res.sendStatus(403);
+    } else {
+      if (authData.user.role === "Admin") {
+        next();
+      }
+    }
+  });
 }
 
 //Error Handler

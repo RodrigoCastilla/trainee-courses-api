@@ -6,7 +6,7 @@
             <th scope="col">Email</th>
             <th scope="col">Password</th>
             <th scope="col">Role</th>
-            <th scope="col"></th>
+            {{!-- <th scope="col"></th> --}}
         </tr>
     </thead>
     <tbody>
@@ -17,12 +17,12 @@
             <td>{{this.email}}</td>
             <td>{{this.password}}</td>
             <td>{{this.role}}</td>
-            <td>
+            {{!-- <td>
                 <a href="/api/users/{{this._id}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a>
                 <a href="/api/users/delete/{{this._id}}"
                     onclick="return confirm('Are you sure to delete this record ?');"><i class="fa fa-trash fa-lg"
                         aria-hidden="true"></i></a>
-            </td>
+            </td> --}}
         </tr>
         {{/each}}
     </tbody>
