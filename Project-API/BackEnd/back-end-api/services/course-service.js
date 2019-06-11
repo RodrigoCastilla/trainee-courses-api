@@ -1,4 +1,4 @@
-const userService = require("../services/user-service");
+const userService = require("./user-service");
 const mongoose = require("mongoose");
 const User = mongoose.model("User");
 const Course = mongoose.model("Course");

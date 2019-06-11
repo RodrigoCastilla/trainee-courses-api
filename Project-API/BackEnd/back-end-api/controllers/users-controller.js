@@ -215,6 +215,10 @@ function insertCourseInUser(req, res) {
 
 //Remove a course in user - Function
 function removeCourseInUser(req, res) {
+
+  const userId = req.params.userId;
+  
+
   User.findOneAndUpdate(
     { id: req.params.userId },
     {

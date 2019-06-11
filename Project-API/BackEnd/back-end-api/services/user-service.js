@@ -1,5 +1,5 @@
-const courseService = require("../services/course-service");
-const tokenservice = require("../services/token-service");
+const courseService = require("./course-service");
+const tokenservice = require("./token-service");
 const mongoose = require("mongoose");
 const User = mongoose.model("User");
 const Course = mongoose.model("Course");
@@ -93,7 +93,7 @@ const registerCourseInUser = (userID, courseId) => {
   );
 };
 
-const removeCourseInUser = (user, courseName) => {
+const removeCourseInUser = (userId, courseName) => {
   User.findOneAndUpdate(
     { id: user.id },
     {
