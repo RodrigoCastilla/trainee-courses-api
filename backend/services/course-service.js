@@ -1,34 +1,37 @@
 const userService = require("./user-service");
 const mongoose = require("mongoose");
-const User = mongoose.model("User");
 const Course = mongoose.model("Course");
 
-const getAllCourses = () => {
-  const res = Course.find((err, docs) => {
+const getAllCourses = async () => {
+  const res = await Course.find((err, docs) => {
     if (!err) {
       return docs;
     } else {
       console.log("Error retrieving user list: " + err);
-      return null;
+      return;
     }
   });
   return res;
 };
 
-const getASpecificCourse = courseId => {
-  const res = Course.findById(courseId, (err, doc) => {
+const getASpecificCourse = async courseId => {
+  const res = await Course.findOne({ _id: courseId }, (err, doc) => {
+    console.log("Searching Course...");
     if (!err) {
+      console.log("Course was found");
       return doc;
     }
+    console.log("Error");
   });
   return res;
 };
 
-const addCourse = newCourse => {
+const addCourse = async newCourse => {
   const course = new Course();
   course.name = newCourse.name;
   course.enrolledUsers = [];
-  course.save((err, doc) => {
+
+  const res = await course.save((err, doc) => {
     if (!err) {
       return true;
     } else {
@@ -36,10 +39,11 @@ const addCourse = newCourse => {
       return false;
     }
   });
+  return res;
 };
 
-const updateCourse = (courseId, courseData) => {
-  const res = Course.findOneAndUpdate(
+const updateCourse = async (courseId, courseData) => {
+  const res = await Course.findOneAndUpdate(
     { id: courseId },
     courseData,
     { new: true },
@@ -55,8 +59,8 @@ const updateCourse = (courseId, courseData) => {
   return res;
 };
 
-const deleteCourse = courseId => {
-  User.findByIdAndRemove(courseId, (err, doc) => {
+const deleteCourse = async courseId => {
+  const res = await User.findByIdAndRemove(courseId, (err, doc) => {
     if (!err) {
       return true;
     } else {
@@ -64,11 +68,12 @@ const deleteCourse = courseId => {
       return false;
     }
   });
+  return res;
 };
 
-const addUserInCourse = (courseId, uerId) => {
-  const user = userService.getASpecificUser(uerId);
-  Course.findOneAndUpdate(
+const addUserInCourse = async (courseId, uerId) => {
+  const user = await userService.getASpecificUser(uerId);
+  const res = await Course.findOneAndUpdate(
     { id: courseId },
     {
       $addToSet: {
@@ -85,10 +90,11 @@ const addUserInCourse = (courseId, uerId) => {
       }
     }
   );
+  return res;
 };
 
-const removeUserInCourse = (courseId, userId) => {
-  const res = User.findOneAndUpdate(
+const removeUserInCourse = async (courseId, userId) => {
+  const res = await User.findOneAndUpdate(
     { id: courseId },
     {
       $pull: { enrolledCourses: { id: userId } }

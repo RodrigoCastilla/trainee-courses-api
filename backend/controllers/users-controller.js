@@ -8,42 +8,80 @@ const jwt = require("jsonwebtoken");
 const userService = require("../services/user-service");
 
 //Mainpage
-router.get("/", verifyToken, verifyUser, (req, res) => {
-  const a = jwt.verify(req.token, "secretKey", (err, authData) => {
-    if (err) {
-      console.log("forbidden from login");
-      res.sendStatus(403);
-    } else {
-      console.log(authData);
-      User.find((err, docs) => {
-        if (!err) {
-          // console.log(JSON.parse(localStorage.get("userToken")));
-          res.render("users/list", {
-            list: docs
-          });
-        } else {
-          console.log("Error retrieving user list: " + err);
-        }
-      });
-    }
-  });
+router.get("/" /*, verifyToken, verifyUser*/, async (req, res) => {
+  const resp = await userService.getAllUsers(); //userService.getAllUsers();
+  console.log("respuesta");
+  console.log(resp);
+  if (resp) {
+    res.render("users/list", {
+      list: resp
+    });
+    res.json(resp);
+  } else {
+    console.log("Error retrieving user list: " + err);
+  }
 });
 
 //UpdateRecord
-router.put("/:id", verifyToken, verifyAdmin, (req, res) => {
-  updateRecord(req, res);
-});
+router.put(
+  "/:id",
+  // verifyToken,
+  // verifyAdmin,
+  async (req, res) => {
+    const userId = req.params.id;
+    const userData = req.body;
+    const response = await userService.updateUser(userId, userData);
+    if (response) {
+      console.log("User Updated");
+      res.redirect("users/list");
+    } else {
+      console.log("Error during record update : " + err);
+      res.render("users/addOrEdit", {
+        viewTitle: "Update User",
+        user: req.body
+      });
+    }
+  }
+);
 
 //RegisterNewUser
-router.post("/register" /*, verifyToken, verifyAdmin*/, (req, res) => {
-  insertUser(req, res);
+router.post("/register", verifyToken, verifyAdmin, async (req, res) => {
+  const newUser = {
+    name: req.body.name,
+    email: req.body.email,
+    password: req.body.password,
+    role: req.body.role
+  };
+  const response = await userService.addUser(newUser);
+  if (response) {
+    res.redirect("/api/users");
+  } else {
+    res.redirect("/api/users");
+  }
 });
 
 //Enroll User In a Course
 router.put(
   "/:userId/courses",
-  /*verifyToken, verifyUser, */ (req, res) => {
-    insertCourseInUser(req, res);
+  // verifyToken,
+  // verifyUser,
+  async (req, res) => {
+    const courseId = req.body._id;
+    const userId = req.params.userId;
+
+    const response = await userService.registerCourseInUser(userId, courseId);
+    console.log("r");
+    console.log(response);
+    if (response) {
+      console.log("course registered.");
+      res.redirect("/api/users/list");
+    } else {
+      console.log("Error during course register");
+      res.render("users/addOrEdit", {
+        viewTitle: "Update User",
+        user: req.body
+      });
+    }
   }
 );
 
@@ -52,8 +90,21 @@ router.delete(
   "/:userId/courses/:courseName",
   // verifyToken,
   // verifyUser,
-  (req, res) => {
-    removeCourseInUser(req, res);
+  async (req, res) => {
+    const userId = req.params.userId;
+    const courseName = req.params.courseName;
+    const response = await userService.removeCourseInUser(userId, courseName);
+
+    if (response) {
+      console.log("Course deleted.");
+      res.redirect("/api/users/list");
+    } else {
+      console.log("Error during record update : " + err);
+      res.render("users/addOrEdit", {
+        viewTitle: "Update User",
+        user: req.body
+      });
+    }
   }
 );
 
@@ -74,7 +125,7 @@ router.get("/login" /*, verifyToken*/, (req, res) => {
   res.send(`
                 <form method='POST'>
                     <input name='email' type= 'email' placeholder= 'email here' />
-                    <input name= 'name' type= 'password' placeholder= 'pwd here' />
+                    <input name= 'password' type= 'password' placeholder= 'pwd here' />
                     <button>Log</button>
                 </form>`);
   // res.json({
@@ -85,46 +136,32 @@ router.get("/login" /*, verifyToken*/, (req, res) => {
 });
 
 //
-router.post("/login", (req, res) => {
-  User.find({ email: req.body.email }, (err, data) => {
-    if (err) {
-      console.log(err);
-      return;
-    }
-    // console.log(data);
-    const name = data[0].name;
-    const role = data[0].role;
-    const user = {
-      name: name,
-      email: req.body.email,
-      role: role
-    };
-    // console.log(user);
-    jwt.sign(
-      { user: user },
-      "secretKey" /*, {expiresIn: '30s'} */,
-      (err, token) => {
-        localStorage.set("userToken", JSON.stringify(token));
-        // res.json({
-        //   token
-        // });
-        res.redirect("/api/users");
-      }
-    );
-  });
+router.post("/login", async (req, res) => {
+  const userEmail = req.body.email;
+  const userPassword = req.body.password;
+
+  const response = await userService.logIn(userEmail, userPassword);
+  if (response) {
+    res.redirect("/api/users");
+  } else {
+    console.log("Email or Password not found. Try Again.");
+    res.redirect("/api/login");
+  }
 });
 
-//
-router.get("/:id", verifyToken, verifyUser, (req, res) => {
-  User.findById(req.params.id, (err, doc) => {
-    if (!err) {
-      console.log(doc);
-      res.render("users/addOrEdit", {
-        viewTitle: "Update User",
-        user: doc
-      });
-    }
-  });
+router.get("/:id", verifyToken, verifyUser, async (req, res) => {
+  const userId = req.params._id;
+  const response = await userService.getASpecificUser(userId);
+
+  if (response) {
+    console.log("User found.");
+    res.render("users/addOrEdit", {
+      viewTitle: "Update User",
+      user: doc
+    });
+  } else {
+    console.log("User not found.");
+  }
 });
 
 //Delete User by ID
@@ -148,16 +185,23 @@ router.delete("/:id", verifyToken, verifyAdmin, (req, res) => {
 	"password" : "contraseña",
 	"role" : "Admin"
 }
+
+{
+    "name": "Panchito",
+    "email": "panchito666@evilcorp.com",
+    "password": "passwordofevil",
+    "role": "User"
+}
 */
 //Insert New User Function
-function insertUser(req, res) {
+async function insertUser(req, res) {
   const newUser = {
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     role: req.body.role
   };
-  const response = userService.addUser(newUser);
+  const response = await userService.addUser(newUser);
   if (response) {
     res.redirect("/api/users");
   } else {
@@ -166,89 +210,34 @@ function insertUser(req, res) {
 }
 
 //Register a course in user - Function
-function insertCourseInUser(req, res) {
-  Course.find({ name: req.body.courseName }, (err, data) => {
-    if (err) {
-      console.log(err);
-      return;
-    }
-    //Insert course into enrolledCourses Array
-    // let datos = data;
-    User.findOneAndUpdate(
-      { _id: req.params.userId },
-      {
-        $addToSet: {
-          enrolledCourses: data
-        }
-      },
-      { new: true },
-      (err, doc) => {
-        // console.log(data);
-        if (!err) {
-          // Course.findOneAndUpdate(
-          //   { id: data.id },
-          //   {
-          //     $addToSet: {
-          //       enrolledUsers: doc
-          //     }
-          //   },
-          //   { new: true },
-          //   (err, courseDoc) => {
-          //     if (!err) console.log(doc);
-          //     else console.log("Error during record update : " + err);
-          //   }
-          // );
-          res.redirect("/api/users/list");
-        } else {
-          if (err.name == "ValidationError") {
-            handleValidationError(err, req.body);
-            res.render("users/addOrEdit", {
-              viewTitle: "Update User",
-              user: req.body
-            });
-          } else console.log("Error during record update : " + err);
-        }
-      }
-    );
-  });
+async function insertCourseInUser(req, res) {
+  const courseId = req.body._id;
+  const userId = req.params.userId;
+
+  const response = await userService.registerCourseInUser(userId, courseId);
+  console.log("r");
+  console.log(response);
+  if (response) {
+    console.log("course registered.");
+    res.redirect("/api/users/list");
+  } else {
+    console.log("Error during course register");
+    res.render("users/addOrEdit", {
+      viewTitle: "Update User",
+      user: req.body
+    });
+  }
 }
 
 //Remove a course in user - Function
-function removeCourseInUser(req, res) {
-
+async function removeCourseInUser(req, res) {
   const userId = req.params.userId;
-  
+  const courseName = req.params.courseName;
+  const response = await userService.removeCourseInUser(userId, courseName);
 
-  User.findOneAndUpdate(
-    { id: req.params.userId },
-    {
-      $pull: { enrolledCourses: { name: req.params.courseName } }
-    },
-    { new: true },
-    (err, doc) => {
-      if (!err) {
-        res.redirect("/api/users/list");
-      } else {
-        if (err.name == "ValidationError") {
-          handleValidationError(err, req.body);
-          res.render("users/addOrEdit", {
-            viewTitle: "Update User",
-            user: req.body
-          });
-        } else console.log("Error during record update : " + err);
-      }
-    }
-  );
-}
-
-//Update User Data
-function updateRecord(req, res) {
-  const userId = req.params.id;
-  const userData = req.body;
-  const response = userService.updateUser(userId, userData);
   if (response) {
-    console.log("User Updated");
-    res.redirect("users/list");
+    console.log("Course deleted.");
+    res.redirect("/api/users/list");
   } else {
     console.log("Error during record update : " + err);
     res.render("users/addOrEdit", {
@@ -257,6 +246,9 @@ function updateRecord(req, res) {
     });
   }
 }
+
+//Update User Data
+async function updateRecord(req, res) {}
 
 //Format of Token
 //Authorization: Bearer <acess_token>

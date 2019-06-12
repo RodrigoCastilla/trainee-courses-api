@@ -2,30 +2,31 @@ const courseService = require("./course-service");
 const tokenservice = require("./token-service");
 const mongoose = require("mongoose");
 const User = mongoose.model("User");
-const Course = mongoose.model("Course");
 
-const getAllUsers = () => {
-  const res = User.find((err, docs) => {
+const getAllUsers = async () => {
+  const res = await User.find((err, docs) => {
     if (!err) {
       return docs;
-    } else {
-      console.log("Error retrieving user list: " + err);
-      return null;
     }
   });
   return res;
 };
 
-const getASpecificUser = userId => {
-  const res = User.findById(userId, (err, doc) => {
-    if (!err) {
-      return doc;
+const getASpecificUser = async userId => {
+  const res = await User.findById(
+    { _id: userId },
+    { lean: true },
+    (err, doc) => {
+      if (!err) {
+        return doc;
+      }
+      //console.log(doc);
     }
-  });
+  );
   return res;
 };
 
-const addUser = newUser => {
+const addUser = async newUser => {
   const user = new User();
   user.name = newUser.name;
   user.email = newUser.email;
@@ -33,7 +34,7 @@ const addUser = newUser => {
   user.role = newUser.role;
   user.enrolledCourses = [];
 
-  const res = user.save((err, doc) => {
+  const res = await user.save((err, doc) => {
     if (!err) {
       console.log("User Created");
       return true;
@@ -45,8 +46,8 @@ const addUser = newUser => {
   return res;
 };
 
-const updateUser = (userId, userData) => {
-  const res = User.findOneAndUpdate(
+const updateUser = async (userId, userData) => {
+  const res = await User.findOneAndUpdate(
     { _id: userId },
     userData,
     { new: true },
@@ -62,8 +63,8 @@ const updateUser = (userId, userData) => {
   return res;
 };
 
-const deleteUser = userId => {
-  User.findByIdAndRemove(userId, (err, doc) => {
+const deleteUser = async userId => {
+  const res = await User.findByIdAndRemove(userId, (err, doc) => {
     if (!err) {
       return true;
     } else {
@@ -71,30 +72,34 @@ const deleteUser = userId => {
       return false;
     }
   });
+  return res;
 };
 
-const registerCourseInUser = (userID, courseId) => {
-  const course = courseService.getASpecificCourse(courseId);
-  User.findOneAndUpdate(
-    { id: userID },
+const registerCourseInUser = async (userID, courseId) => {
+  //console.log(await courseService.getAllCourses());
+  const course = await courseService.getASpecificCourse(courseId);
+
+  const res = await User.findOneAndUpdate(
+    { _id: userID },
     {
       $addToSet: {
         enrolledCourses: course
       }
     },
-    { new: true },
-    (err, doc) => {
-      if (!err) {
-        return true;
-      } else {
-        return false;
-      }
-    }
+    { new: true }
   );
+  console.log("c");
+  console.log(res);
+  if (res) {
+    return true;
+  }
+  // return false;
+  // console.log(resp);
+  // return resp;
 };
 
-const removeCourseInUser = (userId, courseName) => {
-  User.findOneAndUpdate(
+const removeCourseInUser = async (userId, courseName) => {
+  const res = await User.findOneAndUpdate(
     { id: user.id },
     {
       $pull: { enrolledCourses: { name: courseName } }
@@ -108,28 +113,19 @@ const removeCourseInUser = (userId, courseName) => {
       }
     }
   );
+  return res;
 };
 
-function logIn(email, password) {
-  const res = User.find({ email: email, password: password }, (err, data) => {
-    if (err) {
-      return false;
-    }
-    // console.log(data);
-    const name = data[0].name;
-    const role = data[0].role;
-    const user = {
-      name: name,
-      email: email,
-      role: role
-    };
-    return tokenservice.encryptToken(user);
-  });
-  return res;
+async function logIn(email, password) {
+  const user = await User.find({ email: email, password: password });
+  if (user !== null && user) {
+    return await tokenservice.encryptToken(user);
+  }
+  return false;
 }
 
-function logOut() {
-  return tokenservice.deleteToken();
+async function logOut() {
+  return await tokenservice.deleteToken();
 }
 
 function handleValidationError(err, body) {
