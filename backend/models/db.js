@@ -12,5 +12,9 @@ mongoose.connect(
   }
 );
 
+mongoose.set("useNewUrlParser", true);
+mongoose.set("useFindAndModify", true);
+mongoose.set("useCreateIndex", true);
+
 require("./courses.model");
 require("./users.model");

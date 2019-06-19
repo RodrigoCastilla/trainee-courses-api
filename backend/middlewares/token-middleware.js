@@ -14,6 +14,23 @@ function verifyToken(req, res, next) {
     console.log("Forbidden from VerifyToken");
     res.sendStatus(403);
   }
+  // const bearerHeader = JSON.parse(localStorage.get("userToken")); //req.headers["authorization"];
+  // //Check if bearer is undefined
+  // if (typeof bearerHeader !== null || typeof bearerHeader !== "undefined") {
+  //   //aplit at the space
+  //   //const bearer = bearerHeader.split(" ");
+  //   //Get Token from array
+  //   //const bearerToken = bearer[1];
+  //   //Set the token
+  //   // req.token = bearerToken;
+  //   req.token = bearerHeader;
+  //   //Next Middleware
+  //   next();
+  // } else {
+  //   //Forbidden
+  //   console.log("Forbidden from VerifyToken");
+  //   res.sendStatus(403);
+  // }
 }
 
 function verifyUser(req, res, next) {

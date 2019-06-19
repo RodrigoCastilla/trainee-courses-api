@@ -5,8 +5,8 @@ const path = require("path");
 const exphbs = require("express-handlebars");
 const bodyparser = require("body-parser");
 
-const courseController = require("./controllers/courses-controller");
-const usersController = require("./controllers/users-controller");
+const coursesRouter = require("./routes/course-router");
+const usersRouter = require("./routes/user-router");
 
 var app = express();
 app.use(
@@ -14,6 +14,16 @@ app.use(
     extended: true
   })
 );
+
+// app config
+// app.set("view engine", "pug");
+// app.set("views", "./views");
+
+// HTTP: Request - Response
+// app.use(express.static("public"));
+// app.use(bodyParser.json());
+// app.use(express.urlencoded({ extended: false }));
+
 app.use(bodyparser.json());
 app.set("views", path.join(__dirname, "/views/"));
 app.engine(
@@ -26,9 +36,9 @@ app.engine(
 );
 app.set("view engine", "hbs");
 
-app.listen(3000, () => {
+app.listen(8080, () => {
   console.log("Express server started at port : 3000");
 });
 
-app.use("/api/courses", courseController);
-app.use("/api/users", usersController);
+app.use("/api/courses", coursesRouter);
+app.use("/api/users", usersRouter);

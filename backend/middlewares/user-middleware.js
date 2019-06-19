@@ -1,14 +1,17 @@
-function handleValidationError(err, body) {
-  for (field in err.errors) {
-    switch (err.errors[field].path) {
-      case "name":
-        body["fullNameError"] = err.errors[field].message;
-      case "email":
-        body["emailError"] = err.errors[field].message;
-      case "password":
-        body["password"] = err.errors[field].message;
-      case "role":
-        body["role"] = err.errors[field].message;
-    }
+function validateAllBodyAttributes(req, res, next) {
+  const { name } = req.body;
+  const { email } = req.body;
+  const { password } = req.body;
+  const { role } = req.body;
+
+  let errors = "";
+  if (!name || !email || !password || !role) {
+    console.log("Incomplete/Wrong Fields");
+    return res.redirect("/api/users");
   }
+  next();
 }
+
+module.exports = {
+  validateAllBodyAttributes
+};

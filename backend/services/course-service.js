@@ -15,15 +15,29 @@ const getAllCourses = async () => {
 };
 
 const getASpecificCourse = async courseId => {
-  const res = await Course.findOne({ _id: courseId }, (err, doc) => {
-    console.log("Searching Course...");
-    if (!err) {
-      console.log("Course was found");
-      return doc;
-    }
-    console.log("Error");
-  });
-  return res;
+  console.log("Searching Course...");
+
+  try {
+    const res = await Course.findOne({ _id: courseId }, (err, doc) => {
+      if (!err) {
+        console.log("Course was found");
+        return doc;
+      }
+      // throw error;
+      console.log("Error");
+    });
+    return res;
+  } catch (err) {
+    console.log("From course finding:");
+    console.log(err);
+  }
+  // const res = await Course.findOne({ _id: courseId }, (err, doc) => {
+  //   if (!err) {
+  //     console.log("Course was found");
+  //     return doc;
+  //   }
+  //   console.log("Error");
+  // });
 };
 
 const addCourse = async newCourse => {
@@ -35,20 +49,23 @@ const addCourse = async newCourse => {
     if (!err) {
       return true;
     } else {
-      console.log("Error during record insertion: " + err);
+      console.log("Error during record insertion in DB: " + err);
       return false;
     }
   });
+  console.log(res);
   return res;
 };
 
 const updateCourse = async (courseId, courseData) => {
   const res = await Course.findOneAndUpdate(
-    { id: courseId },
+    { _id: courseId },
     courseData,
     { new: true },
     (err, doc) => {
       if (!err) {
+        console.log("Course Updated");
+        console.log(doc);
         return true;
       } else {
         console.log("Error during record update : " + err);

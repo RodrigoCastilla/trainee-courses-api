@@ -1,30 +1,94 @@
-const express = require("express");
-const router = express.Router();
 const courseService = require("../services/course-service");
 
-//
-router.get("/", async (req, res) => {
+//---------------------------------------------------COURSE CRUD -----------------------------------------------------------------
+
+async function getCoursesList(req, res) {
   const courses = await courseService.getAllCourses();
   if (courses) {
-    res.json(docs);
+    res.json(courses);
   } else {
     console.log("Error retrieving courses list");
   }
-});
+}
 
-router.get("/register/:name", async (req, res) => {
+async function getOneCourse(req, res) {
+  const courseId = req.params.id;
+  const response = await courseService.getASpecificCourse(courseId);
+
+  if (response) {
+    console.log("Course found.");
+    res.render("courses/addOrEdit", {
+      viewTitle: "Update Course",
+      user: response
+    });
+  } else {
+    console.log("User not found.");
+  }
+}
+
+async function createNewCourse(req, res) {
   const response = await courseService.addCourse(req.body);
   if (response) {
     res.redirect("/api/course/list");
   } else {
-    console.log("Error during record insertion: " + err);
+    console.log("Error during record insertion");
   }
-});
+}
 
-router.get("/list", (req, res) => {
-  res.json("from list");
-});
+async function modifyCourse(req, res) {
+  const courseId = req.params.id;
+  const response = await courseService.updateCourse(courseId, req.body);
 
-function insertRecord() {}
+  if (response) {
+    console.log("Course found.");
+    res.render("courses/addOrEdit", {
+      viewTitle: "Modify Course",
+      user: response
+    });
+  } else {
+    console.log("Course not found.");
+  }
+}
 
-module.exports = router;
+async function deleteCourse(req, res) {
+  const response = await courseService.deleteCourse(req.body);
+  if (response) {
+    res.redirect("/api/course/list");
+  } else {
+    console.log("Error on removing course");
+  }
+}
+
+//---------------------------------------------------COURSE CRUD END -----------------------------------------------------------------
+
+//---------------------------------------------------COURSE ENROLLMENT ---------------------------------------------------------------
+
+async function registerUserInCourse(req, res) {
+  const response = await courseService.addCourse(req.body);
+  if (response) {
+    res.redirect("/api/course/list");
+  } else {
+    console.log("Error during record insertion");
+  }
+}
+
+async function removeUserInCourse(req, res) {
+  const response = await courseService.addCourse(req.body);
+  if (response) {
+    res.redirect("/api/course/list");
+  } else {
+    console.log("Error during record insertion");
+  }
+}
+
+//---------------------------------------------------COURSE ENROLLMENT END --------------------------------------------------------------
+
+module.exports = {
+  getCoursesList,
+  getOneCourse,
+  createNewCourse,
+  modifyCourse,
+  deleteCourse,
+  registerUserInCourse,
+  removeUserInCourse
+};

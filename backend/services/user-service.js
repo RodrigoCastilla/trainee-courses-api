@@ -77,22 +77,37 @@ const deleteUser = async userId => {
 
 const registerCourseInUser = async (userID, courseId) => {
   //console.log(await courseService.getAllCourses());
-  const course = await courseService.getASpecificCourse(courseId);
+  console.log("Registering course into user.");
+  try {
+    const course = await courseService.getASpecificCourse(courseId);
 
-  const res = await User.findOneAndUpdate(
-    { _id: userID },
-    {
-      $addToSet: {
-        enrolledCourses: course
+    const res = await User.findAndModify(
+      { _id: userID },
+      {
+        $addToSet: {
+          enrolledCourses: course
+        }
+      },
+      { new: true },
+      (err, doc) => {
+        if (!err) {
+          console.log("course inserted succesfully");
+          console.log(data);
+        } else {
+          console.log("Error");
+        }
       }
-    },
-    { new: true }
-  );
-  console.log("c");
-  console.log(res);
-  if (res) {
-    return true;
+    );
+    console.log("c");
+    console.log(res);
+    if (res) {
+      return true;
+    }
+  } catch (err) {
+    console.log("from user creation");
+    console.log(err);
   }
+
   // return false;
   // console.log(resp);
   // return resp;
@@ -154,3 +169,13 @@ module.exports = {
   logIn,
   logOut
 };
+
+// {"name":"Rodrigo","email":"rcastillalp@gmail.com","password":"contraseña","role":"Admin"}
+// {"name":"Panchito","email":"panchito666@evilcorp.com","password":"passwordofevil","role":"User"}
+// {"name":"Paco","email":"pacopug@puppies.com","password":"sleepybaby666","role":"Admin"}
+// {"name":"Jarri","email":"jarri@puppies.com","password":"fluffypuppy","role":"Admin"}
+
+// {"name":"Maths"}
+// {"name":"Souer"}
+// {"name":"ComputerScience"}
+// {"name":"UI-UX"}
